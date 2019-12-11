@@ -1,0 +1,51 @@
+path = getDirectory("Choose a directory containing .ser files");
+out= getDirectory("Choose an output directory");
+scalebarbool = getBoolean("Should the output images have a scale bar?", "Yes", "No")
+
+format = getFormat();
+setBatchMode(true); 
+list = getFileList(path);
+
+var scalebarwidth
+var v
+for (i=0; i<list.length; i++) {
+	showProgress(i+1, list.length);
+	if(endsWith(list[i],".ser")) {
+		serpath= path+list[i];
+		run("TIA Reader", ".ser-reader...=&serpath .ser-reader...=&serpath");
+		title = getTitle;
+		width = getWidth;
+		height = getHeight;
+		getPixelSize(unit, pw, ph, pd);
+		v = 0.1*width*pw;
+
+		if(unit == "nm"){scalebarwidth=round_multiple(v,50);}
+		else{scalebarwidth=round_multiple(v,0.5);}
+
+		if(scalebarbool == 1){
+		if(width == 512){
+		run("Scale Bar...", "width=scalebarwidth height=8 font=16 color=White background=Black location=[Lower Left] bold");
+		}
+		if(width == 2048){
+		run("Scale Bar...", "width=scalebarwidth height=24 font=60 color=White background=Black location=[Lower Left]  bold");
+		}}
+		saveAs(format, out+list[i]);
+}
+}
+
+setBatchMode(false);
+close();
+
+function getFormat() {
+       formats = newArray("TIFF", "JPEG", "GIF", "PNG",
+	"PGM", "BMP", "FITS", "Text Image", "ZIP", "Raw");
+	Dialog.create("Output format");
+	Dialog.addChoice("Convert to: ", formats, "JPEG");
+	Dialog.show();
+	return Dialog.getChoice();
+}
+
+function round_multiple(num, multiple) {
+	return round((num + multiple/2) / multiple) * multiple;
+}
+
